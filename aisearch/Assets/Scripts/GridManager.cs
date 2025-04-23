@@ -2,20 +2,32 @@
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
+using Unity.VisualScripting;
 
 public class GridManager : MonoBehaviour
 {
+    [SerializeField] GameObject editorMenu;
+    [SerializeField] TMP_InputField widthModifier;
+    [SerializeField] TMP_InputField heightModifier;
     [SerializeField] GameObject gridDisplay;
     public static GridManager instance;
     [SerializeField] GameObject cellPrefab;
     CellScript[,] grid;
     [SerializeField] int width;
     [SerializeField] int height;
+    public List<(int, int)> checkPoints = new List<(int, int)>();
     public (int, int) startingPoint;
     public (int, int) goalPoint;
     public List<PathingScript> robots;
+    Vector3 defaultPosition;
     CellScript hoverCell;
     bool runningSimulation = false;
+    bool selectingNewStart = false;
+    bool selectingNewEnd = false;
+    bool addingNewEndPoints = false;
+    int wallState = 0;
     bool[,] map;
     (int, int)[] path;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -25,11 +37,27 @@ public class GridManager : MonoBehaviour
     }
     void Start()
     {
-
+        defaultPosition = transform.position;
+        GenerateGrid();
+    }
+    void GenerateGrid()
+    {
         map = new bool[width, height];
-        startingPoint = (0, 0);
-        goalPoint = (9, 4);
+        transform.position = new Vector3(defaultPosition.x + 20 - width, defaultPosition.y + (20 % height), defaultPosition.z);
+        if (grid != null)
+        {
+            for (int i = 0; i < grid.GetLength(0); i++)
+            {
+                for (int j = 0; j < grid.GetLength(1); j++)
+                {
+                    Destroy(grid[i, j].gameObject);
+                    grid[i, j] = null;
+                }
+            }
+        }
         grid = new CellScript[width, height];
+        startingPoint = (0, 0);
+        goalPoint = (width - 1, height - 1);
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
@@ -76,7 +104,60 @@ public class GridManager : MonoBehaviour
                 hoverCell.Hover();
                 if (Input.GetMouseButtonDown(0))
                 {
-                    hoverCell.ChangeWall();
+                    if (selectingNewStart)
+                    {
+                        grid[startingPoint.Item1, startingPoint.Item2].BackToDefault();
+                        hoverCell.SetStart();
+                        if (checkPoints.Contains((hoverCell.cellX, hoverCell.cellY)))
+                        {
+                            checkPoints.Remove((hoverCell.cellX, hoverCell.cellY));
+                        }
+                        startingPoint = (hoverCell.cellX, hoverCell.cellY);
+                        hoverCell.UnHover();
+                        UnselectOptions();
+                    }
+                    else if (selectingNewEnd)
+                    {
+                        grid[goalPoint.Item1, goalPoint.Item2].BackToDefault();
+                        hoverCell.SetGoal();
+                        if (checkPoints.Contains((hoverCell.cellX, hoverCell.cellY)))
+                        {
+                            checkPoints.Remove((hoverCell.cellX, hoverCell.cellY));
+                        }
+                        goalPoint = (hoverCell.cellX, hoverCell.cellY);
+                        UnselectOptions();
+                        hoverCell.UnHover();
+                    }
+                    else if (addingNewEndPoints)
+                    {
+                        if (hoverCell.SetCheckPoint())
+                        {
+                            hoverCell.ColorMe();
+                            if (!checkPoints.Contains((hoverCell.cellX, hoverCell.cellY)))
+                            {
+                                checkPoints.Add((hoverCell.cellX, hoverCell.cellY));
+                            }
+                        }
+                        hoverCell.UnHover();
+                        UnselectOptions();
+                    }
+                    else
+                    {
+                        hoverCell.ChangeWall(0);
+                        if (hoverCell.walkable)
+                        {
+                            wallState = 2;
+                        }
+                        else
+                        {
+                            wallState = 1;
+                        }
+                        hoverCell.UnHover();
+                    }
+                }
+                if (Input.GetMouseButton(0))
+                {
+                    hoverCell.ChangeWall(wallState);
                     hoverCell.UnHover();
                 }
             }
@@ -90,13 +171,17 @@ public class GridManager : MonoBehaviour
             }
             if (Input.GetKeyDown(KeyCode.Space))
             {
+                CheckForWalkableMapUpdates();
                 for (int i = 0; i < robots.Count; i++)
                 {
                     runningSimulation = true;
-                    CheckForWalkableMapUpdates();
-                    robots[i].SetPath(map, grid, startingPoint, goalPoint);
+                    robots[i].SetPath(map, grid, startingPoint, goalPoint, checkPoints);
                 }
                 StartCoroutine(RunSimulation());
+            }
+            if (Input.GetMouseButtonDown(1))
+            {
+                UnselectOptions();
             }
         }
     }
@@ -112,8 +197,20 @@ public class GridManager : MonoBehaviour
             }
         }
     }
+    void UnselectOptions()
+    {
+        foreach (Selectable selectableUI in Selectable.allSelectablesArray)
+        {
+            selectableUI.gameObject.SetActive(false);
+            selectableUI.gameObject.SetActive(true);
+        }
+        selectingNewStart = false;
+        selectingNewEnd = false;
+        addingNewEndPoints = false;
+    }
     IEnumerator RunSimulation()
     {
+        editorMenu.SetActive(false);
         gridDisplay.SetActive(false);
         for (int i = 0; i < robots.Count; i++)
         {
@@ -145,13 +242,42 @@ public class GridManager : MonoBehaviour
             robots[i].DeleteCurrentGrid();
         }
         gridDisplay.SetActive(true);
-        for (int i = 0; i < width; i++)
+        for (int i = 0; i < grid.GetLength(0); i++)
         {
-            for (int j = 0; j < height; j++)
+            for (int j = 0; j < grid.GetLength(1); j++)
             {
                 grid[i, j].UnHover();
             }
         }
         runningSimulation = false;
+        editorMenu.SetActive(true);
+    }
+    public void SetNewStart()
+    {
+        selectingNewStart = true;
+    }
+    public void SetNewGoal()
+    {
+        selectingNewEnd = true;
+    }
+    public void AddNewCheckPoint()
+    {
+        addingNewEndPoints = true;
+    }
+    public void ChangeValueOfHeight()
+    {
+        height = int.Parse(heightModifier.text);
+        height = Mathf.Clamp(height, 2, 20);
+        heightModifier.text = height.ToString();
+    }
+    public void ChangeValueOfWidth()
+    {
+        width = int.Parse(widthModifier.text);
+        width = Mathf.Clamp(width, 2, 20);
+        widthModifier.text = width.ToString();
+    }
+    public void ReMakeGrid()
+    {
+        GenerateGrid();
     }
 }

@@ -105,7 +105,6 @@ public class AISearch
             }
             curatedPath.Reverse();
             path = curatedPath.ToArray();
-            Debug.Log(nodesVisits);
             return (seen, path);
         }
         else
@@ -138,6 +137,7 @@ public class AISearch
             nodesVisited++;
             if (currentnode.Item1 == goalX && currentnode.Item2 == goalY)
             {
+                seen.Add(currentnode);
                 nodeQueue.Clear();
                 found = true;
             }
@@ -172,7 +172,6 @@ public class AISearch
             }
             curatedPath.Reverse();
             foundPath = curatedPath.ToArray();
-            Debug.Log(nodesVisited);
             return (seen, foundPath);
         }
         else
@@ -239,13 +238,17 @@ public class AISearch
                     {
                         currentNode = keys.Key;
                     }
+                    else if ((keys.Value == nodeQueue[currentNode])&& (HeuristicFormula(currentNode, goalPoint) - HeuristicFormula(keys.Key, goalPoint) > 0) && (HeuristicFormula(currentNode, goalPoint) - HeuristicFormula(keys.Key, goalPoint) < 3))
+                    {
+                        currentNode = keys.Key;
+                    }
                 }
             }
 
             if (currentNode == goalPoint)
             {
+                nodesVisited.Add(currentNode);
                 foundPath = BacktrackPath(relationMap, currentNode);
-                Debug.Log(nodesVisits);
                 return (nodesVisited, foundPath);
             }
             else
@@ -256,6 +259,7 @@ public class AISearch
                 {
                     if (i != (-1, -1))
                     {
+
                         float tentativeGScore = gScore[currentNode.Item1, currentNode.Item2] + 1;
                         if (tentativeGScore < gScore[i.Item1, i.Item2])
                         {
@@ -317,8 +321,8 @@ public class AISearch
             }
             if (currentNode == goalPoint)
             {
+                nodesVisited.Add(currentNode);
                 foundPath = BacktrackPath(relationMap, currentNode);
-                Debug.Log(nodesVisits);
                 return (nodesVisited, foundPath);
             }
             else
@@ -329,7 +333,7 @@ public class AISearch
                 {
                     if (i != (-1, -1))
                     {
-                        if (!nodesVisited.Contains(i))
+                        if (!nodesVisited.Contains(i) && !nodeQueue.Contains(i))
                         {
                             relationMap[i.Item1, i.Item2] = currentNode;
                             nodeQueue.Add(i);
@@ -363,7 +367,6 @@ public class AISearch
             {
                 foundPath = BacktrackPath(relationMap, currentNode);
                 nodesVisited.Add(currentNode);
-                Debug.Log(nodesVisits);
                 return (nodesVisited, foundPath);
             }
             else
@@ -374,7 +377,7 @@ public class AISearch
                 {
                     if (i != (-1, -1))
                     {
-                        if (!nodesVisited.Contains(i))
+                        if (!nodesVisited.Contains(i) && !nodeQueue.Contains(i))
                         {
                             relationMap[i.Item1, i.Item2] = currentNode;
                             nodeQueue.Add(i);

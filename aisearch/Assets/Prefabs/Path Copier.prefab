@@ -44,5 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7c4aab0497702f458d9e57b16bcf431, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  indSummary: {fileID: 2948121570505812589, guid: 6a9e4999dab26134b900f780729fdc7e, type: 3}
   cell: {fileID: 3020290527927111296, guid: 6dc50a5901db75a4e85a5c8d41af159e, type: 3}
   pathingType: 0
+  simulating: 0

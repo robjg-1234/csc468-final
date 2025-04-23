@@ -9,7 +9,7 @@ public class CellScript : MonoBehaviour
     public bool walkable = true;
     bool isGoal = false;
     bool isStart = false;
-    
+    bool partOfThePath = false;
     public Color defaultColor;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -18,25 +18,43 @@ public class CellScript : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    public void BackToDefault()
     {
-
+        isGoal = false;
+        isStart = false;
+        walkable = true;
+        cellMat.color = Color.white;
+        defaultColor = cellMat.color;
     }
-
-    public void ChangeWall()
+    public void ChangeWall(int state)
     {
-        if (!isGoal && !isStart)
+        if (!isGoal && !isStart && defaultColor != Color.blue)
         {
-            walkable = !walkable;
-            if (!walkable)
+            if (state == 0)
             {
+                walkable = !walkable;
+                if (!walkable)
+                {
+                    cellMat.color = Color.black;
+                }
+                else
+                {
+                    cellMat.color = Color.white;
+                }
+                defaultColor = cellMat.color;
+            }
+            else if (state == 1)
+            {
+                walkable = false;
                 cellMat.color = Color.black;
+                defaultColor = cellMat.color;
             }
             else
             {
+                walkable = true;
                 cellMat.color = Color.white;
+                defaultColor = cellMat.color;
             }
-            defaultColor = cellMat.color;
         }
     }
     public void SetGoal()
@@ -61,13 +79,42 @@ public class CellScript : MonoBehaviour
     {
         cellMat.color = defaultColor;
     }
-    public void painted()
+    public void painted(int passes)
     {
-        cellMat.color = Color.cyan;
+        partOfThePath = true;
+        cellMat.color = Color.cyan * 1/passes;
+        cellMat.color = new Color(cellMat.color.r, cellMat.color.g, cellMat.color.b, 1);
     }
     public void Highlighted()
     {
-        cellMat.color = Color.grey;
+        if (!partOfThePath)
+        {
+            cellMat.color = Color.grey;
+        }
+    }
+    public void UnSearch()
+    {
+        if (!partOfThePath)
+        {
+            cellMat.color = defaultColor;
+        }
+    }
+    public bool SetCheckPoint()
+    {
+        bool success = false;
+        if (!isGoal && !isStart)
+        {
+            success = true;
+        }
+        return success;
+    }
+    public void ColorMe()
+    {
+        cellMat.color = Color.blue;
+        defaultColor = Color.blue;
+        walkable = true;
+        isStart = false;
+        isGoal = false;
     }
     public void Copy(CellScript target)
     {
