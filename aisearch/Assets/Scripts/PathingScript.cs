@@ -6,7 +6,6 @@ using UnityEngine;
 
 public class PathingScript : MonoBehaviour
 {
-    [SerializeField] GameObject canvas;
     [SerializeField] GameObject indSummary;
     [SerializeField] string algorithmName;
     [SerializeField] GameObject cell;
@@ -38,7 +37,7 @@ public class PathingScript : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (child != null)
+        if (child != null && !gm.simulating)
         {
             if (Input.GetKeyDown(KeyCode.Tab))
             {
@@ -46,7 +45,7 @@ public class PathingScript : MonoBehaviour
             }
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                Destroy(child.gameObject);
+                child.gameObject.SetActive(false);
                 child = null;
             }
         }
@@ -255,13 +254,8 @@ public class PathingScript : MonoBehaviour
     
     void PresentSummary()
     {
-        if (child == null)
-        {
-            child = Instantiate(indSummary, Camera.main.WorldToScreenPoint(originalPos), Quaternion.identity).GetComponent<SummaryScript>();
-            child.transform.position = new Vector3(child.transform.position.x+250, child.transform.position.y+250);
-            child.SetValues(algorithmName, calculatedTime, nodesVisited, pathSize);
-            child.transform.SetParent(canvas.transform);
-        }
-
+        child = indSummary.GetComponent<SummaryScript>();
+        child.SetValues(algorithmName, calculatedTime, nodesVisited, pathSize);
+        child.gameObject.SetActive(true);
     }
 }

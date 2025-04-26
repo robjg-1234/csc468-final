@@ -23,7 +23,8 @@ public class GridManager : MonoBehaviour
     public List<PathingScript> robots;
     Vector3 defaultPosition;
     CellScript hoverCell;
-    bool runningSimulation = false;
+    public bool runningSimulation = false;
+    public bool simulating = false;
     bool selectingNewStart = false;
     bool selectingNewEnd = false;
     bool addingNewEndPoints = false;
@@ -42,6 +43,7 @@ public class GridManager : MonoBehaviour
     }
     void GenerateGrid()
     {
+        checkPoints.Clear();
         map = new bool[width, height];
         transform.position = new Vector3(defaultPosition.x + 20 - width, defaultPosition.y + (20 % height), defaultPosition.z);
         if (grid != null)
@@ -172,9 +174,9 @@ public class GridManager : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 CheckForWalkableMapUpdates();
+                runningSimulation = true;
                 for (int i = 0; i < robots.Count; i++)
                 {
-                    runningSimulation = true;
                     robots[i].SetPath(map, grid, startingPoint, goalPoint, checkPoints);
                 }
                 StartCoroutine(RunSimulation());
@@ -216,7 +218,7 @@ public class GridManager : MonoBehaviour
         {
             robots[i].SimulateRobot();
         }
-        bool simulating = true;
+        simulating = true;
         while (simulating)
         {
             int simulationsDone = 0;
