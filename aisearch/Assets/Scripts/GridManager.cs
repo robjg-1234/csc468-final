@@ -268,15 +268,29 @@ public class GridManager : MonoBehaviour
     }
     public void ChangeValueOfHeight()
     {
-        height = int.Parse(heightModifier.text);
-        height = Mathf.Clamp(height, 2, 20);
-        heightModifier.text = height.ToString();
+        if (heightModifier.text.Length > 0)
+        {
+            height = int.Parse(heightModifier.text);
+            height = Mathf.Clamp(height, 2, 20);
+        }
+        else
+        {
+            heightModifier.text = height.ToString();
+        }
+        
     }
     public void ChangeValueOfWidth()
     {
-        width = int.Parse(widthModifier.text);
-        width = Mathf.Clamp(width, 2, 20);
-        widthModifier.text = width.ToString();
+        if (widthModifier.text.Length > 0)
+        {
+            width = int.Parse(widthModifier.text);
+            width = Mathf.Clamp(width, 2, 20);
+            widthModifier.text = width.ToString();
+        }
+        else
+        {
+            widthModifier.text = width.ToString();
+        }
     }
     public void ReMakeGrid()
     {
