@@ -213,7 +213,7 @@ public class PathingScript : MonoBehaviour
         TimeSpan ts = stopwatch.Elapsed;
         calculatedTime = ts.Seconds + (ts.TotalMilliseconds / 10d);
 
-        UnityEngine.Debug.Log(calculatedTime.ToString());
+        UnityEngine.Debug.Log(ts.TotalMilliseconds.ToString());
         stopwatch.Reset();
     }
     IEnumerator FindTheSteps()
