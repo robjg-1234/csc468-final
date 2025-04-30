@@ -80,7 +80,7 @@ public class AISearch
                 seen.Add(currentNode);
                 foreach ((int, int) i in GetNeighbors(currentNode.Item1, currentNode.Item2, map))
                 {
-                    if (!seen.Contains(i))
+                    if (!nodeStack.Contains(i) && !seen.Contains(i))
                     {
                         relations.Add((currentNode, i));
                         nodeStack.Push(i);
@@ -200,6 +200,7 @@ public class AISearch
 
     public static (List<(int, int)>, (int, int)[]) AStar((int, int) startingPoint, (int, int) goalPoint, bool[,] map)
     {
+        List<(int, int)> nodesSeen = new List<(int, int)>();
         int nodesVisits = 0;
         Dictionary<(int, int), float> nodeQueue = new Dictionary<(int, int), float>();
         int mapWidth = map.GetLength(0);
@@ -238,18 +239,21 @@ public class AISearch
                     {
                         currentNode = keys.Key;
                     }
-                    else if ((keys.Value == nodeQueue[currentNode])&& (HeuristicFormula(currentNode, goalPoint) - HeuristicFormula(keys.Key, goalPoint) > 0) && (HeuristicFormula(currentNode, goalPoint) - HeuristicFormula(keys.Key, goalPoint) < 3))
+                    else if ((keys.Value == nodeQueue[currentNode]) && (HeuristicFormula(currentNode, goalPoint) - HeuristicFormula(keys.Key, goalPoint) > 0) && (HeuristicFormula(currentNode, goalPoint) - HeuristicFormula(keys.Key, goalPoint) < 3))
                     {
                         currentNode = keys.Key;
                     }
                 }
             }
-
+            if (!nodesSeen.Contains(currentNode))
+            {
+                nodesSeen.Add(currentNode);
+            }
             if (currentNode == goalPoint)
             {
                 nodesVisited.Add(currentNode);
                 foundPath = BacktrackPath(relationMap, currentNode);
-                return (nodesVisited, foundPath);
+                return (nodesSeen, foundPath);
             }
             else
             {
@@ -274,11 +278,32 @@ public class AISearch
                                 nodeQueue.Add(i, fScore[i.Item1, i.Item2]);
                             }
                         }
+                        if (!nodesSeen.Contains(i))
+                        {
+                            nodesSeen.Add(i);
+                        }
+                    }
+                    foreach ((int, int) j in GetNeighbors(i.Item1, i.Item2, map))
+                    {
+                        if (j != (-1, -1))
+                        {
+                            float tentativeGScore = gScore[i.Item1, i.Item2] + 1;
+                            if (tentativeGScore < gScore[j.Item1, j.Item2])
+                            {
+                                relationMap[j.Item1, j.Item2] = i;
+                                gScore[j.Item1, j.Item2] = tentativeGScore;
+                                fScore[j.Item1, j.Item2] = tentativeGScore + HeuristicFormula(j, goalPoint);
+                            }
+                        }
+                        if (!nodesSeen.Contains(j))
+                        {
+                            nodesSeen.Add(j);
+                        }
                     }
                 }
             }
         }
-        return (nodesVisited, foundPath);
+        return (nodesSeen, foundPath);
     }
 
     //Greedy Search
@@ -357,12 +382,12 @@ public class AISearch
         (int, int)[] foundPath = new (int, int)[1] { (-1, -1) };
         (int, int)[,] relationMap = new (int, int)[mapWidth, mapHeight];
         relationMap[startingPoint.Item1, startingPoint.Item2] = (-1, -1);
-        List<(int, int)> nodeQueue = new List<(int, int)>() { startingPoint};
+        List<(int, int)> nodeQueue = new List<(int, int)>() { startingPoint };
         while (nodeQueue.Count > 0)
         {
             nodesVisits++;
             int randomNode = Random.Range(0, nodeQueue.Count);
-            (int,int) currentNode = nodeQueue[randomNode];
+            (int, int) currentNode = nodeQueue[randomNode];
             if (currentNode == goalPoint)
             {
                 foundPath = BacktrackPath(relationMap, currentNode);
