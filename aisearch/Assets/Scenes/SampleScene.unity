@@ -2346,7 +2346,7 @@ PrefabInstance:
       objectReference: {fileID: 828468494}
     - target: {fileID: 4222943527630695916, guid: 04771bbd498a4ef48b0bb8913ae8f7ed, type: 3}
       propertyPath: algorithmName
-      value: Breadth First Search
+      value: Breadth-First Search
       objectReference: {fileID: 0}
     - target: {fileID: 5079132697824334494, guid: 04771bbd498a4ef48b0bb8913ae8f7ed, type: 3}
       propertyPath: m_Name
@@ -3325,7 +3325,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4222943527630695916, guid: 04771bbd498a4ef48b0bb8913ae8f7ed, type: 3}
       propertyPath: algorithmName
-      value: Depth First Search
+      value: Depth-First Search
       objectReference: {fileID: 0}
     - target: {fileID: 5079132697824334494, guid: 04771bbd498a4ef48b0bb8913ae8f7ed, type: 3}
       propertyPath: m_Name
